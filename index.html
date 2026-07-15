@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Infra in 12 Weeks — Zero to Forward Deployed Engineer</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --panel: #161b22;
+    --panel2: #1c2330;
+    --border: #2d333b;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --accent: #58a6ff;
+    --green: #3fb950;
+    --amber: #d29922;
+    --purple: #bc8cff;
+    --pink: #f778ba;
+    --radius: 12px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.55;
+  }
+  .wrap { max-width: 900px; margin: 0 auto; padding: 40px 20px 80px; }
+
+  .hero { text-align: center; padding: 28px 0 8px; }
+  .hero .eyebrow {
+    display: inline-block; font-size: 12px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--accent); border: 1px solid var(--accent); border-radius: 999px;
+    padding: 4px 14px; margin-bottom: 18px;
+  }
+  .hero h1 { font-size: clamp(28px, 5vw, 44px); line-height: 1.15; margin-bottom: 12px; }
+  .hero h1 span { color: var(--accent); }
+  .hero p.sub { color: var(--muted); max-width: 680px; margin: 0 auto 24px; font-size: 16px; }
+
+  .meta-chips { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 8px; }
+  .chip { background: var(--panel); border: 1px solid var(--border); border-radius: 999px; padding: 6px 14px; font-size: 13px; color: var(--muted); }
+  .chip b { color: var(--text); font-weight: 600; }
+
+  .bigpicture {
+    background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 22px 24px; margin: 28px 0 0; font-size: 14.5px;
+  }
+  .bigpicture h3 { font-size: 16px; margin-bottom: 10px; color: var(--accent); }
+  .bigpicture p { margin-bottom: 10px; color: var(--text); }
+  .bigpicture p:last-child { margin-bottom: 0; }
+  .bigpicture b { color: var(--green); }
+
+  .fde {
+    border: 1px solid var(--purple); background: rgba(188,140,255,.06);
+    border-radius: var(--radius); padding: 20px 24px; margin: 20px 0 0; font-size: 14.5px;
+  }
+  .fde h3 { color: var(--purple); font-size: 16px; margin-bottom: 10px; }
+  .fde p { margin-bottom: 10px; }
+  .fde p:last-child { margin-bottom: 0; }
+  .fde b { color: var(--purple); }
+
+  .overall { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 22px; margin: 20px 0 8px; }
+  .overall .row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+  .overall .pct { font-size: 22px; font-weight: 700; color: var(--green); }
+  .bar { height: 8px; background: var(--panel2); border-radius: 999px; overflow: hidden; }
+  .bar > div { height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent), var(--green)); transition: width .3s ease; border-radius: 999px; }
+  .note-persist { font-size: 12px; color: var(--muted); margin-top: 10px; }
+
+  .mission {
+    border: 1px solid var(--amber); background: rgba(210,153,34,.07);
+    border-radius: var(--radius); padding: 18px 22px; margin: 24px 0;
+  }
+  .mission h3 { color: var(--amber); font-size: 15px; margin-bottom: 6px; }
+  .mission p { font-size: 14px; }
+  .mission code { background: var(--panel2); padding: 2px 6px; border-radius: 5px; font-size: 12.5px; }
+
+  /* Project ladder */
+  .ladder { margin-top: 34px; }
+  .ladder h2 { font-size: 20px; margin-bottom: 6px; }
+  .ladder .lead { color: var(--muted); font-size: 14px; margin-bottom: 14px; }
+  .rung {
+    display: flex; gap: 14px; align-items: flex-start;
+    background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+    padding: 13px 16px; margin-bottom: 8px;
+  }
+  .rung .n {
+    flex: 0 0 auto; width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 13px; color: #0d1117; background: var(--pink);
+  }
+  .rung .body { flex: 1; }
+  .rung .t { font-weight: 600; font-size: 14.5px; }
+  .rung .t small { color: var(--muted); font-weight: 400; }
+  .rung .d { font-size: 13px; color: var(--muted); margin-top: 2px; }
+  .rung .dots { flex: 0 0 auto; font-size: 12px; color: var(--pink); letter-spacing: 2px; white-space: nowrap; margin-top: 4px; }
+
+  /* Phases */
+  .phase { margin-top: 30px; background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+  .phase-head { padding: 20px 22px 14px; cursor: pointer; user-select: none; }
+  .phase-head .top { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .phase-num {
+    flex: 0 0 auto; min-width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 14px; color: #0d1117; padding: 0 8px;
+  }
+  .phase-head h2 { font-size: 18.5px; flex: 1 1 auto; }
+  .phase-head .duration { font-size: 12.5px; color: var(--muted); white-space: nowrap; }
+  .phase-head .goal { color: var(--muted); font-size: 14px; margin-top: 8px; }
+  .phase .bar { margin: 12px 22px 0; }
+  .phase-count { font-size: 12px; color: var(--muted); text-align: right; margin: 6px 22px 0; }
+  .phase-body { padding: 6px 22px 22px; display: none; }
+  .phase.open .phase-body { display: block; }
+  .phase .toggle-hint { font-size: 12px; color: var(--accent); }
+
+  .plain {
+    border-left: 3px solid var(--accent); background: rgba(88,166,255,.06);
+    border-radius: 0 10px 10px 0; padding: 14px 16px; margin: 14px 0 6px; font-size: 14px;
+  }
+  .plain h4 { font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--accent); margin-bottom: 6px; }
+  .plain p { margin-bottom: 8px; }
+  .plain p:last-child { margin-bottom: 0; }
+
+  .section-label { font-size: 11.5px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); margin: 20px 0 8px; font-weight: 700; }
+
+  .item {
+    display: flex; gap: 12px; align-items: flex-start;
+    background: var(--panel2); border: 1px solid var(--border); border-radius: 10px;
+    padding: 12px 14px; margin-bottom: 8px;
+  }
+  .item input[type="checkbox"] { margin-top: 4px; width: 16px; height: 16px; accent-color: var(--green); cursor: pointer; flex: 0 0 auto; }
+  .item .body { flex: 1; }
+  .item .name { font-weight: 600; font-size: 14.5px; }
+  .item .name a { color: var(--accent); text-decoration: none; }
+  .item .name a:hover { text-decoration: underline; }
+  .item .desc { font-size: 13px; color: var(--muted); margin-top: 2px; }
+  .item.done .name, .item.done .desc { text-decoration: line-through; opacity: .55; }
+  .badges { display: flex; gap: 6px; flex: 0 0 auto; flex-wrap: wrap; justify-content: flex-end; max-width: 130px; }
+  .badge { font-size: 10.5px; font-weight: 700; letter-spacing: .5px; padding: 3px 8px; border-radius: 999px; white-space: nowrap; }
+  .b-free { background: rgba(63,185,80,.15); color: var(--green); border: 1px solid rgba(63,185,80,.4); }
+  .b-paid { background: rgba(210,153,34,.13); color: var(--amber); border: 1px solid rgba(210,153,34,.4); }
+  .b-time { background: rgba(88,166,255,.12); color: var(--accent); border: 1px solid rgba(88,166,255,.35); }
+
+  .project-card {
+    border: 1px dashed var(--pink); border-radius: 10px; padding: 14px 16px; margin-top: 14px;
+    background: rgba(247,120,186,.05);
+  }
+  .project-card h4 { color: var(--pink); font-size: 14px; margin-bottom: 4px; }
+  .project-card p { font-size: 13.5px; }
+
+  .checkpoint {
+    border: 1px solid var(--green); border-radius: 10px; padding: 12px 16px; margin-top: 10px;
+    background: rgba(63,185,80,.05); font-size: 13.5px;
+  }
+  .checkpoint h4 { color: var(--green); font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 5px; }
+
+  /* Glossary */
+  .gsearch {
+    width: 100%; background: var(--panel2); border: 1px solid var(--border); border-radius: 10px;
+    color: var(--text); font-size: 14px; padding: 11px 14px; margin-bottom: 14px; outline: none;
+  }
+  .gsearch:focus { border-color: var(--accent); }
+  .gcat { font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); font-weight: 700; margin: 18px 0 8px; }
+  .gloss-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 10px; }
+  .gloss { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 13px 15px; }
+  .gloss b { color: var(--accent); font-size: 13.5px; display: block; margin-bottom: 3px; }
+  .gloss p { font-size: 13px; color: var(--muted); }
+
+  .ref { margin-top: 44px; }
+  .ref h2 { font-size: 20px; margin-bottom: 6px; }
+  .ref .lead { color: var(--muted); font-size: 14px; margin-bottom: 14px; }
+  .ref-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; }
+  .ref-card { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; }
+  .ref-card h4 { font-size: 14.5px; margin-bottom: 6px; }
+  .ref-card p { font-size: 13px; color: var(--muted); }
+  .ref-card a { color: var(--accent); text-decoration: none; }
+  .ref-card a:hover { text-decoration: underline; }
+
+  footer { margin-top: 56px; text-align: center; color: var(--muted); font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="hero">
+    <div class="eyebrow">12-Week Sprint · For Students & Early-Career Engineers</div>
+    <h1>Zero to <span>AI Infrastructure</span> — the Forward Deployed Path</h1>
+    <p class="sub">A complete, plain-English curriculum: GitHub & CI/CD → Linux, Docker & Kubernetes → cloud & Terraform → GPUs, LLM serving, MLOps, RAG, LoRA fine-tuning & AI agents — with a parallel track of data structures, algorithms and system design running through all 12 weeks. Twelve projects that climb in difficulty, every resource free (except ~$15 of GPU rental), and a built-in glossary that explains every term.</p>
+    <div class="meta-chips">
+      <div class="chip">Assumes: <b>some coding, zero infra</b></div>
+      <div class="chip">Pace: <b>~24 hrs/week (20 core + 4 parallel track)</b></div>
+      <div class="chip">Length: <b>12 weeks (~290 hrs)</b></div>
+      <div class="chip">Cost: <b>~$15 total (GPU hours)</b></div>
+    </div>
+  </div>
+
+  <div class="bigpicture">
+    <h3>The big picture — read this first</h3>
+    <p>When you write code, someone still has to <b>test it, package it, put it on computers on the internet, and keep it running</b> when things break. The systems that do all of that are called infrastructure, and the people who build them are infrastructure engineers. When the thing being kept alive is an AI model — which runs on scarce, expensive chips called <b>GPUs</b> — the role is <b>AI infrastructure engineering</b>, and demand hugely outstrips supply.</p>
+    <p>This sprint is ordered so nothing ever assumes something you haven't done — never built an API, never written a test, never touched a database? Each is taught from zero in the week it first appears (weeks 2–3), with the exact tutorial linked. First you learn to control computers with text commands and manage code like a professional (week 1), then to build and ship software automatically (weeks 2–3), then to run it the way companies do (weeks 4–6), and only then — with all that scaffolding — do you touch GPUs, LLM serving, RAG, fine-tuning and agents (weeks 7–12). <b>Skipping ahead is the #1 way beginners get confused</b>: RAG tutorials feel like magic spells until you understand containers and APIs, and then they feel obvious.</p>
+    <p>Alongside the weekly phases runs a <b>parallel track</b> — data structures & algorithms (3 problems/week) and system design (one session/week) — because a great portfolio still won't survive a fumbled coding round or a blank whiteboard. It's designed to reinforce the sprint, not compete with it: the systems you design on paper are the ones you deployed the week before.</p>
+    <p>Two rules. <b>Build more than you watch</b> — after 2 hours of video, stop and type. And when any term reads like alphabet soup, use the <b>Glossary</b> at the bottom of this page — every buzzword on this page is explained there in plain English. Nothing on this page is assumed knowledge.</p>
+  </div>
+
+  <div class="fde">
+    <h3>🎯 The end goal: Forward Deployed Engineer (FDE)</h3>
+    <p>A <b>Forward Deployed Engineer</b> is the person an AI company sends to a customer to make the product actually work in the customer's messy, real-world environment. One week you're deploying a RAG system inside a bank's private cloud; the next you're fine-tuning a model on a client's data, wiring it into their Kubernetes cluster, and building the dashboard that proves it's worth the money. It's one of the fastest-growing, best-paid entry paths in AI right now — companies like Palantir, OpenAI and Anthropic hire aggressively for it.</p>
+    <p>What makes FDEs rare is <b>breadth</b>: they can touch every layer — infra, models, data, APIs, a bit of frontend — and they can explain it to non-engineers. That's exactly what this curriculum builds: not the deepest specialist in any one layer, but the engineer who can take "here's our data, make an AI product run in our environment" and deliver end-to-end. Every project in the ladder below is a rehearsal for that job.</p>
+  </div>
+
+  <div class="overall">
+    <div class="row"><strong>Overall progress</strong><span class="pct" id="overallPct">0%</span></div>
+    <div class="bar"><div id="overallBar"></div></div>
+    <div class="note-persist">Checkboxes reset when you refresh this preview. Once you deploy the page (Day 1 mission), ask Claude to add saved progress.</div>
+  </div>
+
+  <div class="mission">
+    <h3>⚡ Day 1 mission: put this page on the internet</h3>
+    <p>Make a free GitHub account, create a repository (a project folder GitHub stores for you) called <code>ai-infra-roadmap</code>, upload this file as <code>index.html</code>, and switch on <a href="https://pages.github.com" target="_blank" style="color:var(--amber)">GitHub Pages</a> (Settings → Pages → deploy from main branch). GitHub gives you a live link anyone can open. That's a real deployment — Project 0 of your ladder, done before you've learned anything.</p>
+  </div>
+
+  <div class="ladder">
+    <h2>🪜 The Project Ladder — 12 projects, rising difficulty</h2>
+    <p class="lead">Every week ends with a project that's slightly harder than the last, and each one reuses everything before it. By week 12 your GitHub profile tells a complete story. Difficulty shown as ●○○.</p>
+    <div class="rung"><div class="n">P0</div><div class="body"><div class="t">Deploy this roadmap <small>· Day 1</small></div><div class="d">GitHub repo + GitHub Pages. Your first live URL.</div></div><div class="dots">●○○○○</div></div>
+    <div class="rung"><div class="n">P1</div><div class="body"><div class="t">Portfolio site, professionally managed <small>· Week 1</small></div><div class="d">A simple site — but every change lands via branch → pull request → merge, with a clean commit history. The repo IS the deliverable.</div></div><div class="dots">●○○○○</div></div>
+    <div class="rung"><div class="n">P2</div><div class="body"><div class="t">An API with a full CI/CD pipeline <small>· Week 2</small></div><div class="d">Small web API (any language) with automated tests that run on every push, auto-deploy when green, and a preview link per PR.</div></div><div class="dots">●●○○○</div></div>
+    <div class="rung"><div class="n">P3</div><div class="body"><div class="t">Containerize everything <small>· Week 3</small></div><div class="d">Your API + a database, each in a Docker container, wired with docker-compose, image built by CI and pushed to a registry.</div></div><div class="dots">●●○○○</div></div>
+    <div class="rung"><div class="n">P4</div><div class="body"><div class="t">Run it on Kubernetes <small>· Week 4</small></div><div class="d">Same app on a local kind cluster: 3 replicas, resource limits, rolling updates with zero downtime, self-healing demo (kill a pod, watch it return).</div></div><div class="dots">●●●○○</div></div>
+    <div class="rung"><div class="n">P5</div><div class="body"><div class="t">Make it observable, then break it <small>· Week 5</small></div><div class="d">Prometheus metrics + Grafana dashboard + one alert. Then sabotage it (kill pods, starve memory) and write a postmortem of how you diagnosed it.</div></div><div class="dots">●●●○○</div></div>
+    <div class="rung"><div class="n">P6</div><div class="body"><div class="t">Real cloud, defined in code <small>· Week 6</small></div><div class="d">Deploy to AWS entirely via Terraform. Load-test with k6, capture dashboards, then terraform destroy and screenshot the ~$0 bill.</div></div><div class="dots">●●●○○</div></div>
+    <div class="rung"><div class="n">P7</div><div class="body"><div class="t">Run an LLM yourself <small>· Week 7</small></div><div class="d">Ollama locally + a small chat UI you build, streaming tokens, with system-prompt controls. Feel context windows and quantization first-hand.</div></div><div class="dots">●●●○○</div></div>
+    <div class="rung"><div class="n">P8</div><div class="body"><div class="t">Production model serving <small>· Week 8</small></div><div class="d">vLLM on a rented GPU serving an open model behind your own API, containerized, with tokens/sec, latency and GPU-utilization dashboards.</div></div><div class="dots">●●●●○</div></div>
+    <div class="rung"><div class="n">P9</div><div class="body"><div class="t">RAG knowledge assistant <small>· Week 9</small></div><div class="d">Chat with a real document set (your notes, a codebase, university handbook): embeddings + vector DB + citations + an eval set proving it answers correctly.</div></div><div class="dots">●●●●○</div></div>
+    <div class="rung"><div class="n">P10</div><div class="body"><div class="t">Fine-tune with LoRA <small>· Week 10</small></div><div class="d">LoRA fine-tune a small open model on free Colab/Kaggle GPUs for a specific style or task, publish it to Hugging Face, and serve it with your week-8 stack. Before/after evals.</div></div><div class="dots">●●●●○</div></div>
+    <div class="rung"><div class="n">P11</div><div class="body"><div class="t">An AI agent that does real work <small>· Week 11</small></div><div class="d">A tool-using agent (function calling) that operates on real systems — e.g. reads your cluster's metrics and files GitHub issues when something's wrong. With guardrails and logging.</div></div><div class="dots">●●●●●</div></div>
+    <div class="rung"><div class="n">P12</div><div class="body"><div class="t">CAPSTONE: the Forward Deployed simulation <small>· Week 12</small></div><div class="d">Pretend a client handed you their documents and said "give us a private AI assistant." Ship it end-to-end: Terraform infra, K8s, CI/CD, vLLM serving, RAG + agent, dashboards with cost-per-query, architecture doc + demo video. Everything on the ladder, in one repo.</div></div><div class="dots">●●●●●</div></div>
+  </div>
+
+  <div id="phases"></div>
+
+  <div class="ref">
+    <h2>📖 Glossary — every term, explained properly</h2>
+    <p class="lead">Type to filter. If a term on this page (or in a job posting, or a tutorial) confuses you, it's here. Read the whole thing once in week 1 — 15 minutes now saves hours of quiet confusion later.</p>
+    <input class="gsearch" id="gsearch" type="text" placeholder="Search the glossary… e.g. CI/CD, LoRA, pod, embedding">
+    <div id="glossary"></div>
+  </div>
+
+  <div class="ref">
+    <h2>🚀 After week 12 — the depth queue</h2>
+    <p class="lead">Deliberately kept out of the sprint so it fits 3 months. Start these the week after — this is what turns "capable" into "strong hire".</p>
+    <div class="ref-grid">
+      <div class="ref-card"><h4><a href="https://training.linuxfoundation.org/certification/certified-kubernetes-administrator-cka/" target="_blank">CKA certification</a></h4><p>The strongest infra credential — a hands-on exam fixing real clusters in a terminal. After the sprint you're ~3 weeks of practice away. Paid (~$400s; Linux Foundation runs 30–50% sales constantly). Prep free on <a href="https://killercoda.com/killer-shell-cka" target="_blank">Killercoda CKA scenarios</a>.</p></div>
+      <div class="ref-card"><h4><a href="https://aws.amazon.com/certification/certified-solutions-architect-associate/" target="_blank">AWS Solutions Architect – Associate</a></h4><p>$150 exam, broad cloud credibility. Free prep: <a href="https://www.youtube.com/watch?v=c3Cn4xYfxJY" target="_blank">freeCodeCamp's ~50-hr course</a> + <a href="https://skillbuilder.aws" target="_blank">AWS Skill Builder</a>. CKA + SAA together reliably get infra interviews.</p></div>
+      <div class="ref-card"><h4><a href="https://github.com/DataTalksClub/mlops-zoomcamp" target="_blank">MLOps Zoomcamp (free + free certificate)</a></h4><p>A free 9-week course that deepens your weeks 8–10: experiment tracking, orchestration, drift monitoring, deployment patterns.</p></div>
+      <div class="ref-card"><h4><a href="https://dataintensive.net" target="_blank">Designing Data-Intensive Applications</a></h4><p>The one book worth buying (~$40): how data survives across many servers — replication, partitioning, consensus. A chapter a week for a decade of payback.</p></div>
+      <div class="ref-card"><h4><a href="https://go.dev/tour/" target="_blank">Learn Go properly</a></h4><p>Kubernetes, Docker, Prometheus and Terraform are written in Go — it's the native language of infra tooling and a real interview differentiator.</p></div>
+      <div class="ref-card"><h4><a href="https://pdos.csail.mit.edu/6.824/" target="_blank">MIT 6.824 lectures (free)</a></h4><p>The famous distributed-systems course, recorded. Watch MapReduce, Raft, and fault tolerance alongside the Kleppmann book.</p></div>
+    </div>
+  </div>
+
+  <div class="ref">
+    <h2>🧰 Your toolbelt (all free)</h2>
+    <p class="lead">Install each the week it's needed — not all at once.</p>
+    <div class="ref-grid">
+      <div class="ref-card"><h4><a href="https://code.visualstudio.com" target="_blank">VS Code</a></h4><p>The standard editor. Week 0.</p></div>
+      <div class="ref-card"><h4><a href="https://cli.github.com" target="_blank">GitHub CLI (gh)</a></h4><p>Control GitHub from the terminal. Week 1.</p></div>
+      <div class="ref-card"><h4><a href="https://www.docker.com/products/docker-desktop/" target="_blank">Docker Desktop</a></h4><p>Runs containers on your laptop. Week 3.</p></div>
+      <div class="ref-card"><h4><a href="https://kind.sigs.k8s.io" target="_blank">kind</a> + <a href="https://k9scli.io" target="_blank">k9s</a></h4><p>Mini-Kubernetes inside Docker + a friendly terminal dashboard. Week 4.</p></div>
+      <div class="ref-card"><h4><a href="https://grafana.com/products/cloud/" target="_blank">Grafana Cloud free tier</a></h4><p>Free hosted dashboards + alerts. Week 2 onward.</p></div>
+      <div class="ref-card"><h4><a href="https://aws.amazon.com/free/" target="_blank">AWS Free Tier</a></h4><p>Real cloud at $0. Billing alarm first, always. Week 6.</p></div>
+      <div class="ref-card"><h4><a href="https://ollama.com" target="_blank">Ollama</a></h4><p>Run open LLMs on your own laptop with one command. Week 7.</p></div>
+      <div class="ref-card"><h4><a href="https://colab.research.google.com" target="_blank">Google Colab</a> + <a href="https://www.kaggle.com" target="_blank">Kaggle</a></h4><p>FREE GPUs in the browser (Kaggle gives ~30 GPU-hrs/week). Your fine-tuning lab. Week 10.</p></div>
+      <div class="ref-card"><h4><a href="https://www.runpod.io" target="_blank">RunPod</a> / <a href="https://vast.ai" target="_blank">Vast.ai</a></h4><p>Rent bigger GPUs by the hour for a few dollars — the sprint's only cost (~$15). Weeks 8 & 12.</p></div>
+      <div class="ref-card"><h4><a href="https://killercoda.com" target="_blank">Killercoda</a> & <a href="https://labs.play-with-docker.com" target="_blank">Play with Docker</a></h4><p>Throwaway practice servers in the browser. Weeks 3–5.</p></div>
+      <div class="ref-card"><h4><a href="https://sadservers.com" target="_blank">SadServers</a></h4><p>Broken Linux servers you fix in the browser — "LeetCode for infrastructure." Weeks 4+.</p></div>
+      <div class="ref-card"><h4><a href="https://www.trychroma.com" target="_blank">Chroma</a> / <a href="https://github.com/pgvector/pgvector" target="_blank">pgvector</a></h4><p>Free vector databases for RAG. Week 9.</p></div>
+    </div>
+  </div>
+
+  <div class="ref">
+    <h2>🌐 Communities & staying current</h2>
+    <div class="ref-grid">
+      <div class="ref-card"><h4><a href="https://slack.cncf.io" target="_blank">CNCF Slack</a></h4><p>Where the Kubernetes world lives. Lurk in #kubernetes-novice.</p></div>
+      <div class="ref-card"><h4><a href="https://discord.gg/huggingface" target="_blank">Hugging Face Discord</a></h4><p>The open-model community — fine-tuning help lives here.</p></div>
+      <div class="ref-card"><h4><a href="https://huyenchip.com/blog/" target="_blank">Chip Huyen's blog</a></h4><p>The clearest practical writing on AI systems. Start week 7.</p></div>
+      <div class="ref-card"><h4><a href="https://roadmap.sh/devops" target="_blank">roadmap.sh</a></h4><p>Community visual maps (DevOps, MLOps, AI Engineer) — good cross-reference.</p></div>
+      <div class="ref-card"><h4><a href="https://www.reddit.com/r/LocalLLaMA/" target="_blank">r/LocalLLaMA</a></h4><p>Where open-model serving and fine-tuning knowledge appears first.</p></div>
+      <div class="ref-card"><h4><a href="https://www.reddit.com/r/devops/" target="_blank">r/devops</a> + <a href="https://www.reddit.com/r/kubernetes/" target="_blank">r/kubernetes</a></h4><p>Real practitioners, real problems — surprisingly educational.</p></div>
+    </div>
+  </div>
+
+  <footer>
+    Companion to the "AI Infrastructure Engineering — a practical career guide" doc · Build more than you watch · Ship every week
+  </footer>
+</div>
+
+<script>
+const PHASES = [
+  {
+    num: "DAY 1", color: "#8b949e",
+    title: "Setup — one evening",
+    duration: "~2 hrs",
+    goal: "Accounts and tools in place, roadmap deployed (Project 0). No studying — installs and sign-ups only.",
+    plain: "You don't need days of 'environment setup'. You need a GitHub account, an editor, and Git installed — about two hours including your first deployment. Everything else installs the week it's needed.",
+    sections: [
+      { label: "The checklist", items: [
+        { name: "Create a GitHub account", url: "https://github.com/signup", desc: "Professional username — this profile becomes your public portfolio and every employer will look at it. Turn on two-factor authentication.", time: "15 min", free: true },
+        { name: "Install Git + VS Code", url: "https://git-scm.com/downloads", desc: "Git is the code-snapshot tool, VS Code (code.visualstudio.com) the editor. Tell Git who you are: git config --global user.name / user.email — that's how commits get credited to you.", time: "30 min", free: true },
+        { name: "Set up an SSH key for GitHub", url: "https://docs.github.com/en/authentication/connecting-to-github-with-ssh", desc: "A key file that lets your computer talk to GitHub securely without typing passwords. Follow the official guide step by step — once, forever.", time: "20 min", free: true },
+        { name: "Project 0: deploy this page", url: "https://pages.github.com", desc: "Repo → upload this index.html → Settings → Pages → live URL. It's fine that you don't fully understand what happened — by week 2 you will, precisely.", time: "30 min", free: true },
+        { name: "Optional: rusty on Python? Ramp in parallel", url: "https://www.freecodecamp.org/learn/scientific-computing-with-python/", desc: "This sprint's code is Python (the AI world's language). You need: functions, lists/dicts, loops, classes-at-a-glance. If that list makes you nervous, run freeCodeCamp's free Python course alongside weeks 1–2 — you don't need to finish it before starting, week 1 is terminal/Git anyway.", time: "as needed", free: true },
+      ]},
+    ],
+    project: null, check: null
+  },
+  {
+    num: "1–12", color: "#f0883e",
+    title: "Parallel Track — data structures, algorithms & system design",
+    duration: "All 12 weeks · ~4 hrs/week",
+    goal: "The fundamentals that never expire, run as a steady drumbeat alongside the weekly phases: 3 coding problems + one system-design session per week, every week.",
+    plain: "Two things get you rejected even with a great portfolio: fumbling a basic coding question, and being unable to whiteboard a design. Data structures & algorithms (DS&A) are the vocabulary of coding interviews — arrays, hash maps, trees, graphs, and Big-O (the notation for 'how does this slow down as data grows'). You don't need competitive-programming depth; you need steady reps, which is why this is 3 problems a week for 12 weeks (≈36 problems, enough for real competence) instead of a panic month later. System design — 'how would you build Twitter/a URL shortener/a chat app?' — is even more natural for you, because every week of this sprint IS applied system design: load balancers, caches, queues, replication are the exact things you're deploying. The parallel track names the patterns so you can speak them fluently in interviews. Do this track the same 2 days every week — habit beats intensity.",
+    sections: [
+      { label: "Data structures & algorithms — 3 problems/week, every week", items: [
+        { name: "NeetCode roadmap — the ordered path", url: "https://neetcode.io/roadmap", desc: "The best free DS&A path: topics in dependency order (arrays → hash maps → two pointers → stacks → trees → graphs → dynamic programming), each problem with a free video explanation. Do 3/week in Python. Weeks 1–4: arrays, hashing, two pointers. Weeks 5–8: stacks, binary search, linked lists, trees. Weeks 9–12: graphs + a taste of DP.", time: "3 hrs/wk", free: true },
+        { name: "Big-O — one honest afternoon", url: "https://www.bigocheatsheet.com", desc: "Big-O notation = 'how does runtime/memory grow as input grows' (O(1) constant, O(n) linear, O(n²) avoid). Learn to state the Big-O of every solution you write — interviewers always ask, and it's also how you'll reason about why a slow API endpoint is slow.", time: "3 hrs once", free: true },
+      ]},
+      { label: "System design — one session/week, every week", items: [
+        { name: "System Design Primer (free, the classic)", url: "https://github.com/donnemartin/system-design-primer", desc: "The most-starred free system design resource. Weeks 1–6, read one core concept per week: load balancers (spreading traffic across servers), caching (keeping hot data close), databases & replication (copies for safety and speed), sharding (splitting data across machines), queues (absorbing bursts), CDNs. Each maps directly onto what you're building that week.", time: "1.5 hrs/wk", free: true },
+        { name: "Karan Pratap Singh — System Design course (free)", url: "https://github.com/karanpratapsingh/system-design", desc: "A free, well-organized full course. Weeks 7–12, work through one classic design question per week: URL shortener → rate limiter (you built one!) → chat app → news feed → and finally 'design a RAG platform' and 'design an LLM serving service' using your own project experience as the answer skeleton.", time: "1.5 hrs/wk", free: true },
+        { name: "The weekly design doc habit", url: "https://github.com/donnemartin/system-design-primer", desc: "After each week's project, write a half-page design doc: components, data flow, what breaks under 10× load, what you'd change. By week 12 you'll have 10+ design docs — that's system design practice with receipts, and FDEs write these for clients constantly.", time: "30 min/wk", free: true },
+      ]},
+    ],
+    project: { title: "Parallel-track output — an interview-ready base", desc: "By week 12: ~36 solved problems across all core topics (keep solutions in a public repo with notes), and 10+ design docs in your project repos. Combined with the project ladder, this covers all three interview types: coding, system design, and practical/portfolio." },
+    check: "Checkpoint — you can now: solve an unseen easy/medium array, hash map, tree or graph problem in ~30 min · state the Big-O of your own code · whiteboard a URL shortener or chat app with load balancer, cache, DB and queue · explain design trade-offs in a system YOU actually built."
+  },
+  {
+    num: "WK 1", color: "#58a6ff",
+    title: "Terminal, Linux & professional Git",
+    duration: "Week 1 · ~20 hrs",
+    goal: "Get functional in the three things every infra engineer lives in daily: the command line, Linux, and the branch → pull request → merge workflow.",
+    plain: "Why the terminal first? Because every server your code will ever run on has no screen, no mouse, no buttons — text commands are the only way in. Why Linux? Because ~96% of servers run it. And why Git beyond 'git push'? Because professional teams never edit code directly: every change goes through a branch and a pull request that someone reviews. These three are the alphabet of everything that follows — do not rush past them, everything in weeks 2–12 is written in this alphabet.",
+    sections: [
+      { label: "Command line & Linux", items: [
+        { name: "MIT: The Missing Semester — lectures 1 & 2", url: "https://missing.csail.mit.edu", desc: "Free MIT course on tools schools never teach. Lecture 1: the shell (the command language). Lecture 2: scripting it (turning commands into small programs). Do the exercises — that's where it sticks.", time: "5 hrs", free: true },
+        { name: "Linux Journey — Grasshopper section", url: "https://linuxjourney.com", desc: "Bite-size lessons: the filesystem (how Linux organizes everything as files), permissions (who may read/write/run what), processes (running programs and how to inspect or kill them). Free, no signup.", time: "4 hrs", free: true },
+        { name: "OverTheWire: Bandit — levels 0–15", url: "https://overthewire.org/wargames/bandit/", desc: "A puzzle game where each level forces a real skill on a real server: logging in with SSH, finding files, chaining commands with pipes. The fastest terminal bootcamp that exists. Stop at 15.", time: "6 hrs", free: true },
+      ]},
+      { label: "Git & GitHub, the professional way", items: [
+        { name: "Learn Git Branching — main sequence", url: "https://learngitbranching.js.org", desc: "Interactive visual puzzles that make branches, merging, and rebasing (replaying your changes on top of someone else's) finally click. Concepts first, commands second — the right order.", time: "3 hrs", free: true },
+        { name: "GitHub Skills: 'Introduction to GitHub' + 'Review pull requests'", url: "https://skills.github.com", desc: "GitHub's official free courses run inside real repos: you open real pull requests and a bot guides and reviews you.", time: "3 hrs", free: true },
+      ]},
+      { label: "Project 1", items: [
+        { name: "Build the portfolio site — via PRs only", url: "https://docs.github.com/en/pull-requests", desc: "A simple personal site on GitHub Pages. The rule: main branch is protected in your head — every single change lands via branch → PR → self-review → merge. Ugly site, beautiful history.", time: "5 hrs", free: true },
+      ]},
+    ],
+    project: { title: "P1 — Portfolio site, professionally managed", desc: "Deliverable: a live site whose repo shows 10+ merged PRs with descriptive titles and clean commits. Pin it on your profile. This history is what interviewers actually inspect." },
+    check: "Checkpoint — you can now: navigate and manipulate files entirely in the terminal · SSH into a remote machine · explain what a process and file permissions are · branch, rebase, resolve a merge conflict, and merge a PR without looking anything up."
+  },
+  {
+    num: "WK 2", color: "#58a6ff",
+    title: "Your first API — built from zero, tested, shipped by CI/CD",
+    duration: "Week 2 · ~23 hrs",
+    goal: "Learn what an API actually is, build one from absolute zero with FastAPI, write your first automated tests — then build the robot that tests and ships it on every push.",
+    plain: "Never built an API? This week assumes exactly that, and teaches every step. An API is a program that answers requests from other programs: something sends 'GET /users/5' over HTTP (the request language of the web — a method like GET/POST, a path, maybe some data) and your program answers with JSON (a simple text format for data) and a status code (200 = OK, 404 = not found, 500 = your bug). Each path your API answers on is called an endpoint. You'll build yours with FastAPI, a beginner-friendly Python framework (a framework = code that handles the boring plumbing so you write only the logic) — chosen deliberately because it's also what the AI world builds with; you'll reuse it in weeks 7–12. Then two more firsts: your first automated tests (small programs that check your program — the thing CI runs), and CI/CD itself: a robot that on every push runs those tests and, only if they pass, deploys. By Friday, 'the pipeline blocked my broken code' will be a sentence you've experienced.",
+    sections: [
+      { label: "The internet, demystified", items: [
+        { name: "Cloudflare Learning Center — DNS, CDN, TLS sections", url: "https://www.cloudflare.com/learning/", desc: "Plain-English reading: what DNS is, what a CDN does, what the padlock (TLS/HTTPS) actually protects. Afterwards, narrate out loud what happens when you visit a site — if you stumble, re-read.", time: "3 hrs", free: true },
+        { name: "MDN — 'An overview of HTTP'", url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Overview", desc: "The request language itself, from the web's reference documentation: methods (GET reads, POST creates, PUT updates, DELETE deletes), headers, status codes. One careful read now prevents a hundred confusions later.", time: "2 hrs", free: true },
+      ]},
+      { label: "Build your first API — from absolute zero", items: [
+        { name: "FastAPI — official tutorial, 'First Steps' through 'Request Body'", url: "https://fastapi.tiangolo.com/tutorial/", desc: "One of the best-written tutorials in software, genuinely beginner-first. You'll have a working API in 20 minutes and understand it by hour three: endpoints, path parameters (/items/5), query parameters (?limit=10), request bodies (JSON sent to you). It even auto-generates an interactive docs page (/docs) where you can click-test your own API — use it constantly.", time: "6 hrs", free: true },
+        { name: "Talk to your API from the terminal", url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods", desc: "Practice: curl your own endpoints (curl -X POST with a JSON body), watch the status codes, break things on purpose (wrong path → 404, bad data → 422). Connecting week 1's terminal skills to your new API demystifies both.", time: "1 hr", free: true },
+        { name: "Your first automated tests — pytest + FastAPI's TestClient", url: "https://fastapi.tiangolo.com/tutorial/testing/", desc: "A test is a tiny program that calls your endpoint and asserts the answer is right — assert response.status_code == 200. Write 5+ tests for your API: the happy path, a missing item, bad input. These exact tests are what your pipeline runs; without tests, CI has nothing to check.", time: "3 hrs", free: true },
+      ]},
+      { label: "CI/CD with GitHub Actions", items: [
+        { name: "GitHub Actions — quickstart + 'Understanding GitHub Actions'", url: "https://docs.github.com/en/actions", desc: "GitHub's built-in automation robot. A workflow is a YAML file in your repo saying 'when code is pushed, run these steps'. Write one that installs Python, installs your dependencies, and runs pytest — watch it go green (and push a broken test to watch it go red).", time: "3 hrs", free: true },
+        { name: "GitHub Skills: 'Hello GitHub Actions' + 'Test with Actions'", url: "https://skills.github.com", desc: "Official interactive courses — build real pipelines step by guided step. (Deeper dive when you want it later: freeCodeCamp's full Actions course on YouTube covers secrets, matrices and caching.)", time: "3 hrs", free: true },
+      ]},
+      { label: "Project 2", items: [
+        { name: "Deploy the API with previews per PR", url: "https://render.com/docs", desc: "Host your FastAPI app on a free tier that auto-deploys from GitHub — Render is the simplest for Python APIs (Railway and Fly.io also work; Cloudflare/Vercel shine for sites). Wire it so every push deploys only after tests pass, and PRs get preview environments.", time: "5 hrs", free: true },
+      ]},
+    ],
+    project: { title: "P2 — An API with a full CI/CD pipeline", desc: "Deliverable: a small FastAPI service (pick something you'd actually use — a watchlist API, a flashcards API) with 5+ tests, where pushing broken code visibly blocks deployment and pushing good code goes live in minutes with zero clicks. README section: 'how a change reaches production', written for a beginner — teaching it is the test that you learned it." },
+    check: "Checkpoint — you can now: explain HTTP methods, status codes, JSON and endpoints · build a FastAPI service with GET/POST endpoints from scratch · write and run pytest tests · read and write a GitHub Actions workflow · explain why the robot refusing to deploy failing code is a feature."
+  },
+  {
+    num: "WK 3", color: "#3fb950",
+    title: "Docker — containers everywhere",
+    duration: "Week 3 · ~20 hrs",
+    goal: "Pack applications into containers that run identically on any machine, build them automatically in CI, and compose multi-service systems.",
+    plain: "The oldest pain in software is 'it works on my machine'. Docker ends it: you write a Dockerfile (a recipe: start from this base, copy my code in, install these dependencies, run this command), build it into an image (a sealed box containing your app plus everything it needs), and run containers (live copies of the box) anywhere — your laptop, a server, a GPU machine in week 8. This matters double for AI work, because models come with fragile stacks of dependencies (specific Python, specific CUDA, specific libraries) and containers are how anyone keeps that sane. Docker is also the literal packaging format of Kubernetes, next week.",
+    sections: [
+      { label: "Docker fundamentals", items: [
+        { name: "Docker — official Get Started workshop, all parts", url: "https://docs.docker.com/get-started/", desc: "Dockerfile → image → container → volumes (keeping data when containers restart) → docker-compose (running several containers as one system, e.g. app + database). Do every part with your own hands.", time: "8 hrs", free: true },
+        { name: "Play with Docker classroom", url: "https://training.play-with-docker.com", desc: "Free browser labs on throwaway machines to cement it. Break things freely.", time: "2 hrs", free: true },
+        { name: "Dockerfile best practices", url: "https://docs.docker.com/build/building/best-practices/", desc: "Layer caching (why ordering lines right makes builds 10× faster), small images, .dockerignore. The difference between amateur and professional Dockerfiles — learn it now, not after your first 8GB image.", time: "3 hrs", free: true },
+      ]},
+      { label: "Containers in your pipeline", items: [
+        { name: "Build & push images from GitHub Actions", url: "https://docs.github.com/en/actions/use-cases-and-examples/publishing-packages/publishing-docker-images", desc: "Extend your week-2 pipeline: on every merge to main, CI builds your Docker image and pushes it to a registry (an image warehouse — GitHub's own ghcr.io is free). Now your app ships as a box.", time: "4 hrs", free: true },
+      ]},
+      { label: "Project 3 (with a database primer first)", items: [
+        { name: "SQL basics — SQLBolt (if you've never used a database)", url: "https://sqlbolt.com", desc: "A database is a program that stores data safely and answers questions about it; SQL is the language you ask in. SQLBolt teaches it interactively in your browser — do lessons 1–12 (SELECT, WHERE, JOIN, INSERT). Enough to use Postgres in this project; depth comes with use.", time: "3 hrs", free: true },
+        { name: "Connect FastAPI to Postgres", url: "https://fastapi.tiangolo.com/tutorial/sql-databases/", desc: "The official FastAPI guide for talking to a real database from your API — models, sessions, and CRUD (create/read/update/delete, the four verbs of data apps). Follow it with YOUR week-2 API.", time: "4 hrs", free: true },
+        { name: "Compose the multi-service system", url: "https://docs.docker.com/compose/", desc: "Your API + Postgres (+ optionally Redis as a cache), each its own container, wired with docker-compose, secrets via environment variables — never hardcoded.", time: "5 hrs", free: true },
+      ]},
+    ],
+    project: { title: "P3 — Containerize everything", desc: "Deliverable: `docker compose up` starts your entire system from scratch on any machine. CI builds and pushes the image on every merge. README explains each container's job in one line each." },
+    check: "Checkpoint — you can now: write a clean Dockerfile from memory · explain image vs container vs volume · debug a container (logs, exec into it, inspect) · explain why AI teams are obsessed with containers."
+  },
+  {
+    num: "WK 4", color: "#3fb950",
+    title: "Kubernetes — the autopilot",
+    duration: "Week 4 · ~22 hrs",
+    goal: "Run containers the way companies do: declaratively, self-healing, scalable. Learn the vocabulary that unlocks every infra job posting.",
+    plain: "A company doesn't run one container — it runs hundreds across fleets of servers, and no human can babysit that. Kubernetes (K8s) is the autopilot: you declare 'keep 3 copies of this container running, give each this much memory, restart any that crash, add more when traffic spikes' — and it just does, forever. Its scary reputation is mostly vocabulary: a pod (your container, running), a deployment ('keep N pods alive'), a service (one stable address in front of them), a configmap/secret (settings and passwords injected in). That's 80% of daily Kubernetes. It's also the standard platform for GPU workloads — the AI clusters you'll touch in weeks 8–12 are Kubernetes underneath.",
+    sections: [
+      { label: "Core Kubernetes", items: [
+        { name: "Kubernetes Basics — official interactive tutorial", url: "https://kubernetes.io/docs/tutorials/kubernetes-basics/", desc: "Learn by doing in the browser: create a deployment, expose it with a service, scale it, roll out an update. Say the vocabulary out loud as you go — it's the language of every job posting.", time: "6 hrs", free: true },
+        { name: "KodeKloud — Kubernetes for Absolute Beginners (free labs)", url: "https://kodekloud.com/free-courses", desc: "Videos with a real terminal in the browser so you practice each concept the moment you learn it. Their free list rotates — grab the Kubernetes and Docker ones.", time: "8 hrs", free: true },
+        { name: "Killercoda Kubernetes scenarios — start the habit", url: "https://killercoda.com/kubernetes", desc: "Free instant clusters in the browser. Two scenarios per week from now to week 12 — repetition is what makes kubectl (the K8s command tool) feel natural instead of terrifying.", time: "2 hrs/wk", free: true },
+      ]},
+      { label: "Your own cluster", items: [
+        { name: "kind — Kubernetes on your laptop", url: "https://kind.sigs.k8s.io/docs/user/quick-start/", desc: "A real multi-node cluster inside Docker, free, on your machine. Install k9s (k9scli.io) too — a terminal dashboard that makes exploring the cluster genuinely pleasant.", time: "3 hrs", free: true },
+      ]},
+      { label: "Project 4", items: [
+        { name: "Deploy P3 to Kubernetes", url: "https://kubernetes.io/docs/concepts/workloads/controllers/deployment/", desc: "Write the YAML: deployment (3 replicas), service, configmap for settings, secret for the DB password, resource requests/limits (how much CPU/memory each pod may use — the knob that matters most for GPU work later).", time: "6 hrs", free: true },
+      ]},
+    ],
+    project: { title: "P4 — Run it on Kubernetes", desc: "Deliverable: your app on kind with 3 replicas. Demo in the README (as a GIF or asciinema): kill a pod and watch Kubernetes resurrect it; roll out a new version with zero downtime; roll it back with one command." },
+    check: "Checkpoint — you can now: explain pod / deployment / service / configmap / secret in one sentence each · write deployment YAML from a template without fear · use kubectl to inspect, scale, and roll back · explain what 'self-healing' concretely means."
+  },
+  {
+    num: "WK 5", color: "#3fb950",
+    title: "Observability — dashboards, alerts, debugging",
+    duration: "Week 5 · ~20 hrs",
+    goal: "Know your system is slow or broken before users do: metrics with Prometheus, dashboards and alerts with Grafana, and real Linux debugging under pressure.",
+    plain: "Running software you can't see into is driving at night with no headlights. Observability is the headlights: your app publishes metrics (numbers, every few seconds — requests served, errors, response time), Prometheus collects and stores them, Grafana turns them into dashboards and alerts. One term you'll use forever: p99 latency — '99% of requests finish faster than this' — which catches the worst user experiences that averages hide. This exact stack, unchanged, is how GPU clusters are monitored (week 8 just swaps in GPU metrics), which is why we learn it properly now. This is also the week you start debugging broken Linux servers on purpose.",
+    sections: [
+      { label: "Metrics, dashboards, alerts", items: [
+        { name: "Prometheus — overview, then instrument your app", url: "https://prometheus.io/docs/introduction/overview/", desc: "Add the Prometheus client library to your API so it publishes metrics at /metrics ('instrumenting'), run Prometheus in your cluster, and query with PromQL (its query language — learn rate() and histogram_quantile(), the two you'll use daily).", time: "8 hrs", free: true },
+        { name: "Grafana fundamentals tutorial", url: "https://grafana.com/tutorials/grafana-fundamentals/", desc: "Turn metrics into dashboards and alert rules against a sample app, then do the same for YOUR app: requests/sec, error rate, p99 latency.", time: "3 hrs", free: true },
+        { name: "Google's SRE Book — chapters 1–4 (free online)", url: "https://sre.google/sre-book/table-of-contents/", desc: "Google invented the Site Reliability Engineer role; these chapters give you the mindset: error budgets (how much failure is acceptable and why the answer isn't zero) and why alerts must be rare and meaningful.", time: "4 hrs", free: true },
+      ]},
+      { label: "Debugging under pressure", items: [
+        { name: "SadServers — 2 scenarios/week from now on", url: "https://sadservers.com", desc: "Each scenario is a genuinely broken Linux server: disk full, process stuck, port blocked. Diagnose and fix in the browser. This is exactly what on-call and infra interviews feel like.", time: "2 hrs/wk", free: true },
+      ]},
+      { label: "Project 5", items: [
+        { name: "Instrument, then sabotage", url: "https://grafana.com/products/cloud/", desc: "Full observability on your P4 cluster. Then break it deliberately — kill pods, fill memory, disconnect the database — watch the dashboards catch each failure, and write up how you diagnosed one.", time: "5 hrs", free: true },
+      ]},
+    ],
+    project: { title: "P5 — Make it observable, then break it", desc: "Deliverable: a Grafana dashboard (screenshot in README) showing traffic/errors/p99, one alert that actually fired, and a postmortem write-up: what broke, how the dashboards showed it, how you fixed it, what would prevent it. Postmortems are interview gold." },
+    check: "Checkpoint — you can now: instrument any app with metrics · write basic PromQL · build a dashboard and a sane alert · explain p99 vs average · diagnose a broken Linux server methodically instead of guessing."
+  },
+  {
+    num: "WK 6", color: "#d29922",
+    title: "Cloud & Terraform — real rented infrastructure",
+    duration: "Week 6 · ~22 hrs",
+    goal: "Graduate from your laptop: an AWS account you control, defined entirely in code, with the cost discipline AI infra lives and dies by.",
+    plain: "Companies rent computers from Amazon (AWS) or Google (GCP) rather than owning them. This week makes you functional in a real cloud account: EC2 (renting servers), S3 (file storage), IAM (permissions — who may do what; the part beginners skip and painfully regret), VPC (your private network). Equally important: Infrastructure as Code. Instead of clicking around a website to create servers, you describe them in Terraform files and run terraform apply — reviewable, repeatable, and destroyable (terraform destroy also stops the billing). And billing is the theme: a careless AI training job can burn $50K overnight, so cost awareness is not paranoia, it's a core professional skill — and a hiring signal.",
+    sections: [
+      { label: "AWS essentials", items: [
+        { name: "AWS Free Tier + billing alarm — first hour", url: "https://aws.amazon.com/free/", desc: "Sign up, then IMMEDIATELY create a billing alert (email when spend passes $5) and a budget. Do this before creating any resource. Non-negotiable.", time: "2 hrs", free: true },
+        { name: "AWS Skill Builder — free foundational courses", url: "https://skillbuilder.aws", desc: "Amazon's own free training. Sprint order: EC2 → S3 → IAM → VPC. Do the hands-on labs, not just the videos.", time: "10 hrs", free: true },
+        { name: "Raft — interactive visualization", url: "https://thesecretlivesofdata.com/raft/", desc: "A beautiful 20-minute animation of how a group of servers agree on the truth even when some crash ('consensus'). This exact algorithm keeps Kubernetes itself alive. Your one dose of distributed-systems theory in the sprint.", time: "1 hr", free: true },
+      ]},
+      { label: "Infrastructure as Code", items: [
+        { name: "Terraform — official AWS tutorials", url: "https://developer.hashicorp.com/terraform/tutorials/aws-get-started", desc: "Describe servers/networks/permissions in .tf files → terraform plan shows what would change → apply builds it → destroy cleans it up. After this, clicking around the AWS console feels barbaric.", time: "8 hrs", free: true },
+      ]},
+      { label: "Project 6", items: [
+        { name: "Ship P3 to AWS via Terraform + load-test", url: "https://k6.io/docs/", desc: "Your containerized app on AWS (small EC2 or ECS), S3 for assets, correct IAM roles, Grafana watching it. Hammer it with k6 (free load-testing tool that simulates hundreds of users) and capture the dashboards under load.", time: "8 hrs", free: true },
+      ]},
+    ],
+    project: { title: "P6 — Real cloud, defined in code", desc: "Deliverable: `terraform apply` builds your whole environment from nothing; `terraform destroy` removes it. README includes the k6 results, the dashboard under load, and a screenshot of the ~$0 bill. That screenshot says more than a cert." },
+    check: "Checkpoint — you can now: explain EC2/S3/IAM/VPC in one sentence each · write and apply Terraform from scratch · explain why IaC beats console-clicking · say what your project cost and why."
+  },
+  {
+    num: "WK 7", color: "#bc8cff",
+    title: "GenAI fundamentals — LLMs on your own machine",
+    duration: "Week 7 · ~20 hrs",
+    goal: "Understand what an LLM actually is — tokens, context windows, quantization — by running open models locally and building against them. No cloud, no cost, no magic.",
+    plain: "Before serving models for others, run one for yourself. An LLM (large language model) is, mechanically: text is chopped into tokens (word-pieces, ~4 characters each), and the model repeatedly predicts the next token — that's the whole trick. The context window is how many tokens it can consider at once (its working memory); quantization means storing the model's numbers less precisely so it fits on smaller GPUs — or your laptop, which is exactly what Ollama does. This week you build intuition you cannot fake: how models stream token by token, why long conversations degrade, why some models need 80GB of GPU memory and others run on a MacBook. Every AI infra decision you'll ever make traces back to these mechanics.",
+    sections: [
+      { label: "What a model actually is", items: [
+        { name: "Karpathy — Intro to Large Language Models (1 hr)", url: "https://www.youtube.com/watch?v=zjkBMFhNj_g", desc: "The single best hour of AI explanation on the internet, by one of the field's great teachers. Watch it twice: start of the week and end of the week — you'll be amazed how much more you catch.", time: "2 hrs", free: true },
+        { name: "3Blue1Brown — neural networks & transformers, visually", url: "https://www.3blue1brown.com/topics/neural-networks", desc: "Beautiful visual intuition for what's inside: what a neural network computes, what 'attention' does. Watch the transformer chapters. Intuition, not math homework.", time: "3 hrs", free: true },
+        { name: "Microsoft — Generative AI for Beginners (free course)", url: "https://github.com/microsoft/generative-ai-for-beginners", desc: "A free, well-structured course. Do the lessons on prompt engineering (writing inputs that get good outputs — system prompts, few-shot examples) and on how LLM apps are architected.", time: "5 hrs", free: true },
+      ]},
+      { label: "Run models yourself", items: [
+        { name: "Ollama — open models on your laptop", url: "https://ollama.com", desc: "One command (ollama run llama3.2) downloads and runs a real open model locally, free. Try different sizes and quantizations; feel the speed/quality tradeoff with your own hands. Also exposes an API — which your project uses.", time: "3 hrs", free: true },
+        { name: "Hugging Face — LLM course, first chapters", url: "https://huggingface.co/learn", desc: "Hugging Face is the GitHub of AI models. Learn what's inside a model repo, how to pull and run models with the transformers library, what model cards tell you. Vocabulary for weeks 8–12.", time: "4 hrs", free: true },
+      ]},
+      { label: "Project 7", items: [
+        { name: "No frontend experience? Use Gradio", url: "https://www.gradio.app/guides/quickstart", desc: "Gradio gives you a polished chat interface in ~10 lines of Python — no HTML/CSS/JS needed. It's what the AI community uses for demos (all of Hugging Face Spaces runs on it), so it's a real skill, not a shortcut. If you DO know some web basics, a hand-rolled HTML+fetch UI is great practice instead.", time: "2 hrs", free: true },
+        { name: "Build a chat app on your local model", url: "https://github.com/ollama/ollama/blob/main/docs/api.md", desc: "Your UI (Gradio or hand-built) talking to Ollama's API: streaming responses token by token, a system-prompt selector, conversation memory — and watch what happens when you exceed the context window.", time: "4 hrs", free: true },
+      ]},
+    ],
+    project: { title: "P7 — Run an LLM yourself", desc: "Deliverable: a chat app on YOUR machine talking to YOUR model — streaming tokens, switchable system prompts, visible token counts. README explains tokens, context windows and quantization in your own words (writing it is the test)." },
+    check: "Checkpoint — you can now: explain tokens, context windows and quantization concretely · run and swap open models locally · call an LLM API with streaming · explain why a 70B model needs a data-center GPU and a 3B model doesn't."
+  },
+  {
+    num: "WK 8", color: "#bc8cff",
+    title: "Serving LLMs in production — vLLM + GPU basics",
+    duration: "Week 8 · ~22 hrs · ~$8 GPU",
+    goal: "Serve an open model to many users at once on a rented GPU with vLLM, and monitor it like the production system it is. Weeks 1–6 all converge here.",
+    plain: "Ollama is for one user. Production serving means many users at once on data-center GPUs, and the economics are brutal: an idle GPU burns money at $2–8/hour, so the job is keeping it busy — 'utilization'. vLLM, the standard open-source serving engine, does this with two ideas you should know by name: continuous batching (weaving many users' requests together so the GPU never waits) and PagedAttention (allocating GPU memory the way operating systems do, wasting nothing). Your metrics vocabulary grows: tokens per second (throughput), time-to-first-token (how fast responses start). Notice what this week actually is: a container (wk 3), deployed (wk 2), with dashboards (wk 5), on rented infrastructure (wk 6) — just with a GPU in it. That's the secret: AI infra is infra.",
+    sections: [
+      { label: "GPUs — enough to be dangerous", items: [
+        { name: "Modal's GPU Glossary", url: "https://modal.com/gpu-glossary", desc: "A free, unusually well-written reference: what VRAM is (GPU memory — the #1 constraint), why some GPUs cost 10× others, what utilization means. You don't program GPUs; you understand what makes them fast, idle, or out-of-memory.", time: "4 hrs", free: true },
+        { name: "DCGM — how GPU monitoring works", url: "https://docs.nvidia.com/datacenter/dcgm/latest/", desc: "NVIDIA's tool exposing GPU utilization/memory/temperature as metrics Prometheus can scrape (dcgm-exporter). Literally your week-5 stack pointed at new hardware.", time: "2 hrs", free: true },
+      ]},
+      { label: "vLLM", items: [
+        { name: "vLLM — quickstart + key concepts", url: "https://docs.vllm.ai", desc: "Serve a small open model with vLLM's OpenAI-compatible API (meaning: any tool that talks to OpenAI can talk to your server — the industry's standard plug shape). Read the pages on continuous batching and PagedAttention.", time: "6 hrs", free: true },
+        { name: "Rent a GPU by the hour", url: "https://www.runpod.io", desc: "RunPod or Vast.ai rent GPUs for ~$0.30–0.70/hr. Budget ~$8 this week. Set a spend limit first, work in focused sessions, STOP instances when done — leaving one running overnight is the classic beginner bill-shock.", time: "1 hr", free: false },
+      ]},
+      { label: "Project 8", items: [
+        { name: "Production-shape serving stack", url: "https://docs.vllm.ai", desc: "vLLM serving a 3–8B model on your rented GPU, behind your own containerized API with auth, benchmarked (what happens to time-to-first-token as concurrent users grow from 1 to 50?), with Grafana dashboards: GPU utilization, VRAM, tokens/sec, p99.", time: "9 hrs", free: true },
+      ]},
+    ],
+    project: { title: "P8 — Production model serving", desc: "Deliverable: an API endpoint any app can use, backed by a model YOU serve. README includes the benchmark table (concurrency vs latency vs tokens/sec), dashboard screenshots, and the punchline: your measured cost per 1,000 tokens vs a commercial API's price." },
+    check: "Checkpoint — you can now: explain VRAM, utilization, continuous batching and time-to-first-token · stand up vLLM on a rented GPU without a tutorial · benchmark a serving stack and read the results · estimate what serving a model costs."
+  },
+  {
+    num: "WK 9", color: "#f778ba",
+    title: "RAG — make models know YOUR data",
+    duration: "Week 9 · ~20 hrs",
+    goal: "Build retrieval-augmented generation properly: embeddings, vector databases, chunking, citations — and evals that prove it works.",
+    plain: "Models only know their training data and confidently make things up ('hallucination'). RAG — Retrieval-Augmented Generation — fixes this by letting the model look things up before answering: your documents are split into chunks, each chunk is turned into an embedding (a list of numbers capturing its MEANING, so 'reset my password' and 'can't log in' land near each other), and stored in a vector database that searches by meaning instead of keywords. At question time: embed the question → fetch the most relevant chunks → hand them to the model → answer with citations. This is the #1 system FDEs deploy for clients — 'private AI assistant on our documents' is THE ask — and the difference between demo-RAG and production-RAG is evals: a test set proving the answers are right. You'll build both.",
+    sections: [
+      { label: "RAG concepts, from a source you can trust", items: [
+        { name: "DeepLearning.AI short courses — RAG + embeddings", url: "https://www.deeplearning.ai/short-courses/", desc: "Free 1–2 hr courses taught with the tool authors. Pick one RAG course and one on embeddings/vector databases. Short on purpose — the learning is in your build.", time: "4 hrs", free: true },
+        { name: "Chroma docs — your first vector DB", url: "https://docs.trychroma.com", desc: "A free, embarrassingly simple vector database — running in 10 minutes. Later, know pgvector exists (vector search inside Postgres — the pragmatic production choice clients love because it's just their existing database).", time: "3 hrs", free: true },
+        { name: "Anthropic docs — RAG & prompting patterns", url: "https://docs.claude.com/en/docs/build-with-claude/prompt-engineering/overview", desc: "Vendor-neutral lessons that transfer everywhere: how to structure retrieved context in prompts, make models cite sources, and say 'I don't know' instead of hallucinating.", time: "2 hrs", free: true },
+      ]},
+      { label: "The parts nobody tells beginners", items: [
+        { name: "Chunking — the unglamorous 80%", url: "https://www.pinecone.io/learn/chunking-strategies/", desc: "How you split documents (size, overlap, respecting structure) affects quality more than any other choice. Free guide; experiment with 2–3 strategies in your project and measure the difference.", time: "3 hrs", free: true },
+        { name: "Evals — prove it works", url: "https://github.com/microsoft/generative-ai-for-beginners", desc: "Build a test set: 20+ questions with known-correct answers from your documents. Score retrieval (did the right chunks come back?) separately from generation (was the answer right?). This habit is what separates professionals from demo-builders.", time: "3 hrs", free: true },
+      ]},
+      { label: "Project 9", items: [
+        { name: "Build the knowledge assistant", url: "https://docs.trychroma.com", desc: "Pick a real document set you know well (your notes, a codebase, a university handbook — knowing it is how you'll judge quality). Pipeline: ingest → chunk → embed → store → retrieve → answer with citations, on YOUR week-8 serving stack.", time: "7 hrs", free: true },
+      ]},
+    ],
+    project: { title: "P9 — RAG knowledge assistant", desc: "Deliverable: ask it anything about your document set and get cited answers — running on your own model serving. README includes your eval table (accuracy on the 20+ questions), the chunking experiment results, and one honest example of a failure case and why." },
+    check: "Checkpoint — you can now: explain embeddings and vector search concretely · build an ingest→chunk→embed→retrieve→generate pipeline from scratch · write evals and act on their results · articulate when RAG beats fine-tuning (and vice versa — next week's question)."
+  },
+  {
+    num: "WK 10", color: "#f778ba",
+    title: "Fine-tuning & LoRA — change the model itself",
+    duration: "Week 10 · ~20 hrs · $0 (free GPUs)",
+    goal: "Fine-tune a real model with LoRA on free GPUs, publish it, serve it with your own stack — and know when fine-tuning is the right tool versus RAG.",
+    plain: "RAG changes what a model can SEE; fine-tuning changes what it IS — its style, format discipline, or skill at a narrow task. Full fine-tuning (updating all billions of weights) needs data-center clusters. LoRA — Low-Rank Adaptation — is the trick that democratized it: freeze the model, train tiny 'adapter' matrices alongside (often <1% of the weights), get most of the benefit at a fraction of the cost — small enough to train on FREE Colab/Kaggle GPUs, which is exactly what you'll do. The FDE decision you must be able to make, because clients ask constantly: knowledge that changes (policies, docs) → RAG. Consistent behavior/style/format on a repeated task → fine-tune. Often → both. After this week you'll have done both, so your answer comes from experience.",
+    sections: [
+      { label: "Concepts", items: [
+        { name: "Hugging Face — fine-tuning chapter + PEFT docs", url: "https://huggingface.co/learn", desc: "The LLM course's training chapter, then PEFT docs (Parameter-Efficient Fine-Tuning — the library, where LoRA lives). Understand: datasets formatted as instruction/response pairs, training loss (the number that should go down), overfitting (memorizing instead of learning — why you hold out test data).", time: "5 hrs", free: true },
+        { name: "Unsloth — free fine-tuning notebooks", url: "https://github.com/unslothai/unsloth", desc: "Open-source library making LoRA ~2× faster and much lighter on memory — with ready Colab notebooks that fine-tune real models on the free tier. The fastest path from zero to your first adapter.", time: "3 hrs", free: true },
+      ]},
+      { label: "Free GPU time", items: [
+        { name: "Kaggle notebooks — ~30 GPU-hrs/week, free", url: "https://www.kaggle.com/code", desc: "Free GPU hours every week (Colab's free tier works too but disconnects more). Verify your account to unlock the GPU quota. This is your training lab for $0.", time: "1 hr", free: true },
+      ]},
+      { label: "Project 10", items: [
+        { name: "Train, evaluate, publish, serve", url: "https://github.com/unslothai/unsloth", desc: "Pick a narrow, checkable task (e.g. always answer in your project's exact JSON schema; or a specific tone). Build/adapt a small dataset (a few hundred examples), LoRA-train a 1–3B model, compare base vs tuned on held-out examples, publish the adapter to Hugging Face, and serve it — vLLM can load LoRA adapters.", time: "10 hrs", free: true },
+      ]},
+    ],
+    project: { title: "P10 — Fine-tune with LoRA", desc: "Deliverable: a published model adapter on your Hugging Face profile, a before/after eval table proving the improvement, and the tuned model running on YOUR serving stack. README answers: when would you fine-tune vs RAG, in your own words, with your own evidence." },
+    check: "Checkpoint — you can now: explain LoRA and why it made fine-tuning cheap · prepare an instruction dataset · run a training job and read its loss curve · evaluate honestly against a base model · give a defensible RAG-vs-fine-tuning recommendation."
+  },
+  {
+    num: "WK 11", color: "#f778ba",
+    title: "AI Agents — models that take actions",
+    duration: "Week 11 · ~20 hrs",
+    goal: "Build agents that don't just answer but act: tool use, reasoning loops, guardrails, and observability — because an agent without logging is a liability.",
+    plain: "A chatbot answers; an agent acts. The mechanism is tool use (also called function calling): you describe available actions to the model — 'search_docs(query)', 'get_metrics(service)', 'create_ticket(title, body)' — and it replies with a structured request to call one; your code executes it and feeds the result back; the model decides the next step. Loop until done. That loop, plus memory and guardrails, is every AI agent you've read about. The infra angle is what makes YOU valuable here: agents are non-deterministic software making real API calls, so permissions (IAM thinking — week 6!), rate limits, spending caps, audit logs and kill switches aren't afterthoughts, they're the product. An FDE who can deploy agents SAFELY into a client environment is rare and expensive.",
+    sections: [
+      { label: "Agent fundamentals", items: [
+        { name: "Hugging Face — AI Agents course (free)", url: "https://huggingface.co/learn", desc: "Free hands-on course: tool use, the reasoning loop (often called ReAct — reason, act, observe, repeat), memory, and multi-step task execution, with runnable code.", time: "6 hrs", free: true },
+        { name: "Microsoft — AI Agents for Beginners (free)", url: "https://github.com/microsoft/ai-agents-for-beginners", desc: "Free course covering agent design patterns, planning, and multi-agent systems — good second perspective, framework-agnostic concepts.", time: "4 hrs", free: true },
+        { name: "Build the loop RAW first — no framework", url: "https://docs.claude.com/en/docs/agents-and-tools/tool-use/overview", desc: "Using any LLM API's tool-use docs (Anthropic's are excellent), hand-write the loop once: define two tools, parse the model's tool call, execute, return the result, repeat. ~100 lines. Frameworks (LangGraph etc.) make sense only AFTER you've seen the raw loop — otherwise they're magic, and magic breaks unde debuggably.", time: "4 hrs", free: true },
+      ]},
+      { label: "Project 11", items: [
+        { name: "An ops agent with guardrails", url: "https://github.com/microsoft/ai-agents-for-beginners", desc: "An agent that operates on YOUR infrastructure from earlier weeks: reads Grafana/Prometheus metrics, checks Kubernetes pod status, and files a GitHub issue with a diagnosis when something looks wrong. Read-only tools by default; any write action requires confirmation; every step logged.", time: "6 hrs", free: true },
+      ]},
+    ],
+    project: { title: "P11 — An AI agent that does real work", desc: "Deliverable: an agent that monitors your actual cluster and files real (draft) GitHub issues with sensible diagnoses. README documents: the tool definitions, the guardrail design (what it may never do), a full audit log of one run, and one failure case you caught in testing." },
+    check: "Checkpoint — you can now: implement tool-calling from scratch without a framework · explain the agent loop precisely · design guardrails and explain why each exists · log an agent's actions well enough to debug it after the fact."
+  },
+  {
+    num: "WK 12", color: "#f778ba",
+    title: "CAPSTONE — the Forward Deployed simulation",
+    duration: "Week 12 · ~25 hrs · ~$7 GPU",
+    goal: "One week, one 'client', one end-to-end delivery. Everything from the sprint, shipped as a single coherent product with docs a client could actually use.",
+    plain: "This week you rehearse the actual FDE job. Invent a concrete client — a law firm wanting an assistant over case files, a university department over course docs, a company over its internal wiki — and deliver what they'd pay for: a private AI assistant in 'their' environment. You have every piece already: infra as code (wk 6), Kubernetes (wk 4), CI/CD (wk 2), model serving (wk 8), RAG (wk 9), optionally your tuned model (wk 10) and an agent skill (wk 11), all observable (wk 5) with cost-per-query on a dashboard — because the first question a real client asks is 'what does this cost per month?'. The deliverable isn't just code: it's an architecture doc a semi-technical client could follow and a 5-minute demo video. FDEs are judged on communication as much as engineering — this is that rehearsal.",
+    sections: [
+      { label: "The build", items: [
+        { name: "Day 1–2: infrastructure", url: "https://developer.hashicorp.com/terraform", desc: "Terraform up the environment: networking, a GPU node (rented), Kubernetes, monitoring. Everything from code, nothing hand-clicked. Aim: reproducible in one command.", time: "8 hrs", free: true },
+        { name: "Day 3–4: the AI product", url: "https://docs.vllm.ai", desc: "vLLM serving (your tuned model if week 10's fits the use case), RAG over the 'client' document set with citations and evals, one agent capability (e.g. 'file a ticket when users report problems'), simple auth.", time: "9 hrs", free: true },
+        { name: "Day 5: the client-facing layer", url: "https://www.deeplearning.ai/short-courses/", desc: "A clean frontend (your original edge — most AI engineers can't do this), the cost-per-query dashboard, the architecture doc with a diagram, and a 5-minute demo video (free: OBS Studio). Then terraform destroy and note the total spend.", time: "8 hrs", free: true },
+      ]},
+    ],
+    project: { title: "P12 — The complete Forward Deployed delivery", desc: "Deliverable: one repo containing infra code, app code, pipeline, eval results, dashboard screenshots (including cost-per-query), an architecture doc written for a client, and a demo video. Pin it first on your profile — this is the interview centerpiece that demonstrates all 12 weeks in one artifact." },
+    check: "Final checkpoint — you can now: take 'here's our data, give us a private AI assistant in our environment' and deliver it end-to-end, alone, in a week, with docs and a cost model. That sentence — with the repo to prove it — is your interview pitch."
+  },
+];
+
+const GLOSSARY = [
+  { cat: "The basics", terms: [
+    ["Terminal / shell", "A text window where you type commands to control a computer instead of clicking. Servers have no screens or mice — this is how all infra work happens. 'Bash' is the most common shell language."],
+    ["Server", "Just a computer, usually in a big warehouse (a data center), running your code 24/7 so people can use it over the internet."],
+    ["Linux", "The free operating system ~96% of servers run. Comes in flavors ('distributions') like Ubuntu. If you'll work with servers, you work with Linux."],
+    ["SSH", "Secure Shell — an encrypted way to log into another computer through the terminal, proving who you are with a key file instead of a password. How engineers access servers."],
+    ["Process", "A running program. Linux lets you list them (ps), watch them (top), and kill them — a stuck process is one of the most common things you'll debug."],
+    ["API", "A program that answers requests from other programs (instead of showing pages to humans). Your week-2 project is one; every AI model you use is behind one."],
+    ["HTTP", "The request language of the web: a method (GET reads, POST creates, PUT updates, DELETE deletes) + a path + optional data. HTTPS is the same with encryption (the padlock)."],
+    ["Endpoint", "One path your API answers on, e.g. GET /users/5 or POST /chat. An API is a collection of endpoints."],
+    ["JSON", "The simple text format programs use to exchange data: {\"name\": \"Ada\", \"age\": 36}. What APIs (and LLM APIs) speak."],
+    ["Status code", "The three-digit result of every HTTP request: 200 = OK, 404 = not found, 401/403 = not allowed, 500 = the server's bug, 422 = your request's data was wrong. Learn to read them before blaming your code."],
+    ["Framework", "Code that handles the boring plumbing (parsing requests, routing paths) so you write only the logic. FastAPI is this sprint's framework for APIs; Gradio for quick AI interfaces."],
+    ["Backend vs frontend", "Frontend = what runs in the user's browser (the interface). Backend = what runs on servers (logic, data, models). This sprint is backend-heavy with just enough frontend to demo well."],
+    ["Database / SQL", "A database is a program that stores data safely and answers questions about it; SQL is the question language (SELECT, INSERT, JOIN). Postgres is the open-source standard — and via pgvector, also a RAG store."],
+    ["Test / pytest", "A test is a tiny program that runs your program and asserts the result is right. pytest is Python's standard test runner. Tests are what CI executes — no tests, no safety net."],
+  ]},
+  { cat: "Shipping code", terms: [
+    ["Git", "A tool that saves snapshots ('commits') of your code so you can undo anything and collaborate without overwriting each other. A 'branch' is a parallel line of work; 'merging' combines branches."],
+    ["GitHub", "The website that stores Git projects ('repos') online, where teams review each other's changes and employers inspect your work."],
+    ["Pull request (PR)", "A proposal: 'here are my changes — review them before they join the main code.' Virtually all professional code lands this way. The conversation in a PR is where most real learning happens on teams."],
+    ["CI/CD", "Continuous Integration / Continuous Deployment. A robot watching your repo: every push, it runs your tests (CI); if they pass, it publishes the new version automatically (CD). No human clicks 'upload'. GitHub Actions is GitHub's built-in version."],
+    ["Pipeline / workflow", "The recipe the CI/CD robot follows, written as a YAML file in your repo: build → test → deploy, step by step."],
+    ["Deployment", "Putting a new version of software onto the servers users touch. A 'rollback' is undoing it fast when it breaks; a 'preview deployment' is a private copy per pull request for reviewing changes."],
+    ["Secret", "A password or API key your pipeline needs. Stored in a special encrypted place (GitHub Secrets), NEVER written in code — leaked keys get found by bots in minutes."],
+  ]},
+  { cat: "Containers & Kubernetes", terms: [
+    ["Container / Docker", "Your app packed with everything it needs (language, libraries, settings) into one sealed box that runs identically on any machine. Docker is the standard tool. Kills 'works on my machine' forever."],
+    ["Image vs container", "The image is the sealed box (built once, from a Dockerfile recipe); a container is a running copy of it. One image, many containers."],
+    ["Registry", "A warehouse for images (Docker Hub, GitHub's ghcr.io). CI pushes images there; servers pull them down."],
+    ["Kubernetes (K8s)", "Software that runs hundreds of containers across many servers for you — restarting crashes, spreading load, scaling with traffic. You declare the desired state; it maintains it. The 8 in K8s = the eight letters between K and s."],
+    ["Pod", "Kubernetes' smallest unit: your container, running (occasionally a couple of tightly-coupled containers together)."],
+    ["Deployment (K8s)", "A declaration: 'keep N copies of this pod alive, and here's how to update them without downtime.' Kubernetes enforces it forever."],
+    ["Service (K8s)", "One stable address in front of your pods, so callers don't care which copy answers or that pods come and go."],
+    ["ConfigMap & Secret (K8s)", "Settings and passwords injected into pods from outside, so the same image runs in dev and production with different config."],
+    ["Resource requests/limits", "How much CPU/memory a pod asks for and may not exceed. THE knob for cost and stability — and for GPUs, the whole game."],
+    ["Cluster", "A group of servers working as one big computer. Kubernetes manages clusters; kind runs a small one inside Docker on your laptop."],
+  ]},
+  { cat: "Cloud & monitoring", terms: [
+    ["Cloud (AWS / GCP)", "Renting computers by the hour from Amazon or Google instead of buying them. EC2 = rented servers, S3 = file storage, IAM = permissions, VPC = your private network."],
+    ["IAM", "Identity and Access Management — who (and which program) may do what in your cloud account. Skipping it is how beginners leak data or get $10K bills from stolen keys."],
+    ["Infrastructure as Code / Terraform", "Describing servers, networks and permissions in text files so infrastructure can be reviewed, versioned, recreated and destroyed exactly — like code. Terraform is the standard tool."],
+    ["Observability / monitoring", "Dashboards and alarms that tell you a system is slow or broken before users notice. Metrics = the numbers collected; Prometheus collects them; Grafana draws dashboards and fires alerts."],
+    ["p99 latency", "'99% of requests finish faster than this.' Averages hide your slowest, angriest users; p99 shows them. The number infra engineers quote."],
+    ["SLO / error budget", "A reliability promise ('99.9% of requests succeed') and its flip side — the small amount of failure you're allowed. Zero failure is neither possible nor the goal; managing the budget is."],
+    ["Postmortem", "The blameless write-up after a failure: what broke, how it was found, how it was fixed, what prevents a repeat. Writing good ones is a hireable skill."],
+    ["Load testing", "Hammering your own system with fake traffic (tool: k6) to find where it breaks BEFORE real users do."],
+    ["SRE", "Site Reliability Engineer — applies software engineering to keeping systems fast and unbroken. The classic bridge role into infrastructure."],
+  ]},
+  { cat: "DS&A & system design", terms: [
+    ["Big-O", "Notation for 'how does this slow down as data grows': O(1) constant, O(log n) barely grows, O(n) linear, O(n²) avoid at scale. Interviewers ask it about every solution; infra engineers use it to reason about why things get slow."],
+    ["Hash map / dictionary", "The workhorse data structure: stores key → value pairs with (nearly) instant lookup. The answer to a shocking fraction of interview problems is 'use a hash map'."],
+    ["Data structures", "The standard shapes for organizing data — arrays, hash maps, stacks, queues, linked lists, trees, graphs, heaps. Interview questions test whether you pick the right shape for the job."],
+    ["Load balancer", "A traffic cop in front of your servers, spreading requests across copies so no single one drowns and a dead one is skipped. Kubernetes services are doing this for your pods."],
+    ["Cache", "Keeping frequently-needed data somewhere fast (memory, e.g. Redis) instead of recomputing or re-fetching it. The first answer to most 'make it faster' questions — and the source of the joke that cache invalidation is one of computing's two hard problems."],
+    ["Queue", "A buffer that absorbs bursts: producers drop work in, workers take it out at their own pace. How systems survive traffic spikes without falling over."],
+    ["Replication", "Keeping copies of data on multiple machines so one dying loses nothing and reads can be served from many places. The follow-up question is always: what if the copies disagree?"],
+    ["Sharding / partitioning", "Splitting data across machines when it no longer fits on one (users A–M here, N–Z there). Buys scale, costs complexity — a favorite interview trade-off discussion."],
+    ["System design", "The interview format (and daily job skill) of sketching a whole system — load balancers, servers, caches, databases, queues — and defending the trade-offs. Every week of this sprint is applied system design; the parallel track teaches you to name the patterns."],
+  ]},
+  { cat: "AI & LLMs", terms: [
+    ["LLM", "Large Language Model — the AI behind ChatGPT and Claude. Mechanically: it repeatedly predicts the next token of text. Everything it does emerges from that."],
+    ["Token", "The word-pieces text is chopped into (~4 characters each) before a model reads it. Models are priced, sized and speed-measured in tokens — 'tokens per second' is the throughput metric of AI infra."],
+    ["Context window", "How many tokens a model can consider at once — its working memory. Exceed it and the earliest content falls out, which is why long chats 'forget'. Bigger windows cost more GPU memory."],
+    ["GPU / VRAM", "The chip that makes AI possible (thousands of parallel calculations) and its onboard memory. VRAM is the #1 constraint: a model must fit in it. Scarce and expensive — hence this entire career."],
+    ["Utilization", "How busy the GPU actually is. An idle GPU burns $2–8/hr producing nothing; keeping utilization high is a core AI-infra job."],
+    ["Quantization", "Storing a model's numbers less precisely (e.g. 4-bit instead of 16-bit) so it fits on smaller GPUs — or your laptop. Slight quality cost, massive memory savings. How Ollama runs big models locally."],
+    ["Training vs inference", "Training = teaching a model (huge one-time compute job). Inference = the trained model answering requests (every ChatGPT message). 'Serving' = running inference for many users at scale; vLLM is the standard open-source engine."],
+    ["Continuous batching", "vLLM's key trick: weaving many users' requests together so the GPU never sits idle between them. Why one GPU can serve dozens of users at once."],
+    ["Hallucination", "A model confidently making things up — it predicts plausible text, not true text. The problem RAG (grounding in real documents) and evals exist to fight."],
+    ["Embedding", "A list of numbers capturing a text's MEANING, so 'reset my password' and 'can't log in' land near each other mathematically. The foundation of semantic search and RAG."],
+    ["Vector database", "A database that stores embeddings and searches by meaning instead of keywords. Chroma (simple, free) and pgvector (inside Postgres) are the ones to know."],
+    ["RAG", "Retrieval-Augmented Generation: chunk your documents → embed → store → at question time retrieve the relevant chunks → give them to the model → answer with citations. THE most-deployed real-world LLM system."],
+    ["Chunking", "How documents get split before embedding (size, overlap, structure). Unglamorous, and affects RAG quality more than any other choice."],
+    ["Fine-tuning", "Continuing a model's training on your own examples to change its behavior, style or skill — versus RAG, which changes what it can see. Rule of thumb: changing knowledge → RAG; changing behavior → fine-tune."],
+    ["LoRA", "Low-Rank Adaptation — freeze the model, train tiny adapter matrices alongside (<1% of weights), get most of fine-tuning's benefit cheaply enough for free Colab/Kaggle GPUs. The technique that democratized fine-tuning."],
+    ["Evals", "Automated tests for AI quality: a set of questions with known-good answers, scored on every change. The difference between a demo and a product — and between an amateur and a professional."],
+    ["Prompt engineering", "Writing model inputs deliberately: system prompts (standing instructions), few-shot examples (showing the format you want), structured output. Cheaper than fine-tuning; always try it first."],
+    ["Agent / tool use", "An LLM given actions it can request ('function calling') running in a loop: reason → act → observe → repeat. An agent without guardrails, permissions and audit logs is a liability — securing that loop is infra work."],
+    ["MLOps", "DevOps for machine learning: versioning data and models, tracking experiments, automating deployment, monitoring for drift (models silently getting worse as the world changes)."],
+    ["Forward Deployed Engineer (FDE)", "The engineer sent to a customer to make an AI product work in the customer's real environment — infra + models + data + communication, end-to-end. The target of this entire roadmap."],
+  ]},
+];
+
+/* Render phases */
+const container = document.getElementById("phases");
+let items = [];
+
+PHASES.forEach((phase, pi) => {
+  const el = document.createElement("div");
+  el.className = "phase" + (pi === 0 ? " open" : "");
+  let bodyHtml = `
+    <div class="plain">
+      <h4>In plain English</h4>
+      <p>${phase.plain}</p>
+    </div>`;
+  phase.sections.forEach(sec => {
+    bodyHtml += `<div class="section-label">${sec.label}</div>`;
+    sec.items.forEach(it => {
+      const id = items.length;
+      items.push({ phase: pi, done: false });
+      bodyHtml += `
+        <div class="item" data-id="${id}">
+          <input type="checkbox" data-id="${id}">
+          <div class="body">
+            <div class="name"><a href="${it.url}" target="_blank" rel="noopener">${it.name} ↗</a></div>
+            <div class="desc">${it.desc}</div>
+          </div>
+          <div class="badges">
+            <span class="badge ${it.free ? "b-free" : "b-paid"}">${it.free ? "FREE" : "PAID"}</span>
+            <span class="badge b-time">${it.time}</span>
+          </div>
+        </div>`;
+    });
+  });
+  if (phase.project) {
+    bodyHtml += `
+      <div class="project-card">
+        <h4>🛠 ${phase.project.title}</h4>
+        <p>${phase.project.desc}</p>
+      </div>`;
+  }
+  if (phase.check) {
+    bodyHtml += `
+      <div class="checkpoint">
+        <h4>✅ Checkpoint before moving on</h4>
+        ${phase.check}
+      </div>`;
+  }
+
+  el.innerHTML = `
+    <div class="phase-head">
+      <div class="top">
+        <div class="phase-num" style="background:${phase.color}">${phase.num}</div>
+        <h2>${phase.title}</h2>
+        <span class="duration">${phase.duration} · <span class="toggle-hint">${pi === 0 ? "click to collapse" : "click to expand"}</span></span>
+      </div>
+      <div class="goal">${phase.goal}</div>
+    </div>
+    <div class="bar"><div class="phase-bar"></div></div>
+    <div class="phase-count"><span class="done-count">0</span> done</div>
+    <div class="phase-body">${bodyHtml}</div>`;
+  container.appendChild(el);
+
+  el.querySelector(".phase-head").addEventListener("click", () => {
+    el.classList.toggle("open");
+    el.querySelector(".toggle-hint").textContent = el.classList.contains("open") ? "click to collapse" : "click to expand";
+  });
+});
+
+/* Render glossary */
+const gEl = document.getElementById("glossary");
+GLOSSARY.forEach(group => {
+  const cat = document.createElement("div");
+  cat.className = "gcat";
+  cat.textContent = group.cat;
+  gEl.appendChild(cat);
+  const grid = document.createElement("div");
+  grid.className = "gloss-grid";
+  group.terms.forEach(([term, def]) => {
+    const g = document.createElement("div");
+    g.className = "gloss";
+    g.innerHTML = `<b>${term}</b><p>${def}</p>`;
+    grid.appendChild(g);
+  });
+  gEl.appendChild(grid);
+});
+
+document.getElementById("gsearch").addEventListener("input", e => {
+  const q = e.target.value.toLowerCase().trim();
+  document.querySelectorAll(".gloss").forEach(g => {
+    g.style.display = !q || g.textContent.toLowerCase().includes(q) ? "" : "none";
+  });
+  document.querySelectorAll(".gcat").forEach(cat => {
+    const grid = cat.nextElementSibling;
+    const visible = [...grid.querySelectorAll(".gloss")].some(g => g.style.display !== "none");
+    cat.style.display = visible ? "" : "none";
+  });
+});
+
+/* Progress */
+const phaseEls = document.querySelectorAll(".phase");
+document.querySelectorAll('.item input[type="checkbox"]').forEach(cb => {
+  cb.addEventListener("change", () => {
+    const id = +cb.dataset.id;
+    items[id].done = cb.checked;
+    cb.closest(".item").classList.toggle("done", cb.checked);
+    render();
+  });
+});
+
+function render() {
+  const total = items.length;
+  const done = items.filter(i => i.done).length;
+  document.getElementById("overallPct").textContent = Math.round(100 * done / total) + "%";
+  document.getElementById("overallBar").style.width = (100 * done / total) + "%";
+  phaseEls.forEach((el, pi) => {
+    const mine = items.filter(i => i.phase === pi);
+    const d = mine.filter(i => i.done).length;
+    el.querySelector(".phase-bar").style.width = (100 * d / mine.length) + "%";
+    el.querySelector(".done-count").textContent = d + " / " + mine.length;
+  });
+}
+render();
+</script>
+</body>
+</html>
